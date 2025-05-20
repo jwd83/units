@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+
+Convert various units of measurement using JavaScript.
+
+
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Conversion</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function formatNumber(precision, number) {
+            if (typeof number === 'undefined' || number === null) return ''
+
+            if (number === 0) return '0'
+
+            const roundedValue = round(precision, number)
+            const floorValue = Math.floor(roundedValue)
+
+            const isInteger = Math.abs(floorValue - roundedValue) < Number.EPSILON
+
+            const numberOfFloorDigits = String(floorValue).length
+            const numberOfDigits = String(roundedValue).length
+
+            if (numberOfFloorDigits > precision) {
+                return String(floorValue)
+            } else {
+                const padding = isInteger ? precision - numberOfFloorDigits : precision - numberOfDigits + 1
+
+                if (padding > 0) {
+                    if (isInteger) {
+                        return `${String(floorValue)}.${'0'.repeat(padding)}`
+                    } else {
+                        return `${String(roundedValue)}${'0'.repeat(padding)}`
+                    }
+                } else {
+                    return String(roundedValue)
+                }
+            }
+        }
+
+        function round(precision, number) {
+            return parseFloat(number.toPrecision(precision))
+        }
+
+        const convert_to = Object.freeze({
+            "length": {
+                "m": (x) => x,
+                "cm": (x) => x * 0.01,
+                "mm": (x) => x * 0.001,
+                "um": (x) => x * 1e-6,
+                "nm": (x) => x * 1e-9,
+                "pm": (x) => x * 1e-12,
+                "km": (x) => x * 1000,
+                "in": (x) => x * 0.0254,
+                "ft": (x) => x * 0.3048,
+                "yd": (x) => x * 0.9144,
+                "mi": (x) => x * 1609.34,
+            },
+
+            "mass": {
+                "ng": (x) => x * 1e-9,
+                "ug": (x) => x * 1e-6,
+                "mg": (x) => x * 0.001,
+                "g": (x) => x,
+                "kg": (x) => x * 1000,
+                "lb": (x) => x * 453.592,
+                "oz": (x) => x * 28.3495,
+                "st": (x) => x * 6350.29,
+
+            },
+
+            "temperature": {
+                "c": (x) => x,
+                "f": (x) => (x - 32) * 5 / 9,
+                "k": (x) => x - 273.15,
+            },
+        });
+
+        const convert_from = Object.freeze({
+            "length": {
+                "m": (x) => x,
+                "cm": (x) => x * 100,
+                "mm": (x) => x * 1000,
+                "um": (x) => x * 1e6,
+                "nm": (x) => x * 1e9,
+                "pm": (x) => x * 1e12,
+                "km": (x) => x * 0.001,
+                "in": (x) => x * 39.3701,
+                "ft": (x) => x * 3.28084,
+                "yd": (x) => x * 1.09361,
+                "mi": (x) => x * 0.000621371,
+            },
+
+            "mass": {
+                "ng": (x) => x * 1e9,
+                "ug": (x) => x * 1e6,
+                "mg": (x) => x * 1000,
+                "g": (x) => x,
+                "kg": (x) => x * 0.001,
+                "lb": (x) => x * 0.00220462,
+                "oz": (x) => x * 0.035274,
+                "st": (x) => x * 0.157473,
+
+            },
+
+            "temperature": {
+                "c": (x) => x,
+                "f": (x) => x * 9 / 5 + 32,
+                "k": (x) => x + 273.15,
+            },
+        });
+
+
+        const unit_names = Object.freeze({
+            "length": {
+                "pm": "Picometers",
+                "nm": "Nanometers",
+                "um": "Micrometers",
+                "mm": "Millimeters",
+                "cm": "Centimeters",
+                "m": "Meters",
+                "km": "Kilometers",
+                "in": "Inches",
+                "ft": "Feet",
+                "yd": "Yards",
+                "mi": "Miles",
+            },
+
+            "mass": {
+                "ng": "Nanograms",
+                "ug": "Micrograms",
+                "mg": "Milligrams",
+                "g": "Grams",
+                "kg": "Kilograms",
+                "lb": "Pounds",
+                "oz": "Ounces",
+                "st": "Stones",
+            },
+
+            "temperature": {
+                "c": "Celsius",
+                "f": "Fahrenheit",
+                "k": "Kelvin",
+            },
+        });
+
+        console.log("convert_to:");
+        console.log(convert_to);
+        console.log("Unit Names:");
+        console.log(unit_names);
+
+        // on load populate the unit select boxes
+        window.onload = function () {
+            const measurement = document.getElementById("measurement");
+            const unit_from = document.getElementById("unit_from");
+            const unit_to = document.getElementById("unit_to");
+            const user_value = document.getElementById("user_value");
+            const result = document.getElementById("result");
+            const convert = document.getElementById("convert");
+            const copy = document.getElementById("copy");
+
+            console.log("Measurement: " + measurement.value);
+            console.log("Unit From: " + unit_from.value);
+            console.log("Unit To: " + unit_to.value);
+
+
+            // populate the unit select boxes
+            for (const [key, value] of Object.entries(unit_names)) {
+                console.log("Key: " + key);
+                console.log("Value: " + value);
+                const option = document.createElement("option");
+                option.value = key;
+                option.innerHTML = key.charAt(0).toUpperCase() + key.slice(1);
+                measurement.appendChild(option);
+            }
+
+            // calculate the conversion
+            convert.onclick = function () {
+                const selected_measurement = measurement.value;
+                const selected_unit_from = unit_from.value;
+                const selected_unit_to = unit_to.value;
+                const value = parseFloat(user_value.value);
+                console.log("Selected Measurement: " + selected_measurement);
+                console.log("Selected Unit From: " + selected_unit_from);
+                console.log("Selected Unit To: " + selected_unit_to);
+                console.log("Value: " + value);
+
+                // convert to base unit
+                const base_value = convert_to[selected_measurement][selected_unit_from](value);
+
+                console.log("Base Value: " + base_value);
+
+                // convert from base unit
+                const converted_value = convert_from[selected_measurement][selected_unit_to](base_value);
+                console.log("Converted Value: " + converted_value);
+
+                result.value = formatNumber(6, converted_value);
+            }
+
+            // change measurement
+            function changeMeasurement() {
+                unit_from.innerHTML = "";
+                unit_to.innerHTML = "";
+                const selected_measurement = measurement.value;
+                for (const [key, value] of Object.entries(unit_names[selected_measurement])) {
+                    const option_from = document.createElement("option");
+                    option_from.value = key;
+                    option_from.innerHTML = value;
+                    unit_from.appendChild(option_from);
+
+                    const option_to = document.createElement("option");
+                    option_to.value = key;
+                    option_to.innerHTML = value;
+                    unit_to.appendChild(option_to);
+                }
+            }
+            changeMeasurement();
+            measurement.onchange = function () {
+                changeMeasurement();
+            }
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <main>
+        <h1>Unit Converter</h1>
+        <p>Convert various units of measurement using from one to another.</p>
+        <form action="#">
+            <label for="measurement">Conversion Type</label>
+            <select name="measurement" id="measurement">
+
+            </select>
+            <label for="unit_from">Unit</label>
+            <select name="unit_from" id="unit_from">
+            </select>
+            <label for="value">Value</label>
+            <input type="text" name="value" id="user_value" placeholder="1" value="1">
+
+
+            <label for="unit_to">Convert to</label>
+            <select name="unit_to" id="unit_to">
+            </select>
+
+            <label for="result">Result</label>
+            <input type="text" name="result" id="result" placeholder="0" disabled>
+            <button type="button" id="convert">Convert</button>
+            <button type="button" id="copy">Copy Result</button>
+        </form>
+    </main>
+
+</body>
+
+</html>
