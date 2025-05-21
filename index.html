@@ -13,15 +13,10 @@ Convert various units of measurement using JavaScript.
     <title>Unit Conversion</title>
     <link rel="stylesheet" href="style.css">
     <script>
-        function formatNumber(precision, number) {
-            // Format the number to the specified precision
-            const formattedNumber = number.toLocaleString(undefined, {
-                minimumFractionDigits: precision,
-                maximumFractionDigits: precision,
-            });
-            return formattedNumber;
+        // Function to format a number with a specified number of decimal places
+        function formatNumber(decimals, number) {
+            return Number.parseFloat(number).toFixed(decimals);
         }
-
 
         const convert_to = Object.freeze({
             "length": {
@@ -176,6 +171,15 @@ Convert various units of measurement using JavaScript.
                 console.log("Converted Value: " + converted_value);
 
                 result.value = formatNumber(6, converted_value);
+            }
+
+            // copy the result to the clipboard
+            copy.onclick = function () {
+                navigator.clipboard.writeText(result.value).then(function () {
+                    console.log("Copied to clipboard: " + result.value);
+                }, function (err) {
+                    console.error("Could not copy text: ", err);
+                });
             }
 
             // change measurement
